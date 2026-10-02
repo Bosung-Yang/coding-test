@@ -1,0 +1,12 @@
+{
+  // 코테 연습용: 자동완성/추천 끄기 (다시 켜려면 이 파일 삭제)
+  "editor.quickSuggestions": { "other": "off", "comments": "off", "strings": "off" },
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.wordBasedSuggestions": "off",
+  "editor.parameterHints.enabled": false,
+  "editor.inlineSuggest.enabled": false,
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.snippetSuggestions": "none",
+  "github.copilot.enable": { "*": false },
+  "C_Cpp.autocomplete": "disabled"
+}
