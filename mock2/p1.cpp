@@ -3,57 +3,40 @@
 
 using namespace std;
 
-vector<int> solution(vector<vector<int>> score) {
-    vector<int> answer;
+// 등급 번호 : 0 = A, 1 = B, 2 = F
+const int A = 0, B = 1, F = 2;
 
-    vector<vector<int>> dir = {
-        {-1,-1}, // 왼쪽 위,
-        {-1, 0}, // 위
-        {-1,1}, 
-        {0, -1},
-        {0, 1},
-        {1, -1},
-        {1, 0},
-        {1,1}
-    };
-    int h = score.size(); int w = score[0].size();
-    vector<vector<int>> beforearr(h, vector<int>(w, 3));
-    //vector<vector<int>> afterarr(h, vector<int>(w, 3));
-    
-    for (int y = 0; y < h; y++){
-        for (int x = 0; x < w; x++){
-            if (score[y][x] >=90) beforearr[y][x] = 3;
-            else if (score[y][x] >=70 ) beforearr[y][x] = 2;
-            else beforearr[y][x] = 1;
+vector<int> solution(vector<vector<int>> score) {
+    int h = score.size(), w = score[0].size();
+
+    // 1. 기본 등급
+    vector<vector<int>> base(h, vector<int>(w));
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            if (score[y][x] >= 90) base[y][x] = A;
+            else if (score[y][x] >= 70) base[y][x] = B;
+            else base[y][x] = F;
         }
     }
 
-    vector<vector<int>> afterarr = beforearr;
-    for (int y = 0; y < h; y++){
-        for (int x = 0; x < w; x++){
-            int cnt = 0;
-            for (int d = 0 ; d < 8; d++){
-                int ny = y + dir[d][0];
-                int nx = x + dir[d][1];
-                if (ny >= 0 && nx >= 0 && ny < h && nx < w){
-                    if(beforearr[ny][nx] == 1) cnt++;
+    // 2. 강등 판정은 모두 "기본 등급"으로 (동시 판정)
+    //    결과를 base에 바로 덮어쓰면 다른 칸 판정에 영향을 주므로 따로 셈
+    vector<int> count(3, 0);
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            int fCount = 0;   // 주변 8칸의 기본 등급 F 개수
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    if (dy == 0 && dx == 0) continue;
+                    int ny = y + dy, nx = x + dx;
+                    if (ny < 0 || nx < 0 || ny >= h || nx >= w) continue;
+                    if (base[ny][nx] == F) fCount++;
                 }
             }
-            if (cnt >= 3 && afterarr[y][x] != 1){
-                afterarr[y][x] -=1;
-            }
+            int grade = base[y][x];
+            if (fCount >= 3 && grade != F) grade++;   // 한 단계 강등 (F는 그대로)
+            count[grade]++;
         }
     }
-    int a, b, f;
-    a = b= f= 0;
-    for (int i = 0 ; i < afterarr.size(); i++){
-        for (int j = 0 ; j < afterarr[0].size(); j++){
-            if (afterarr[i][j] == 3) a++;
-            if (afterarr[i][j] == 2) b++;
-            if (afterarr[i][j] == 1) f++;
-        }
-        
-    }
-    answer = {a, b, f};
-    return answer;
+    return count;   // [A 개수, B 개수, F 개수]
 }

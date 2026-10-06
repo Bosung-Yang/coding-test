@@ -3,46 +3,38 @@
 
 using namespace std;
 
-int answer = -1;
-int n;
-vector<vector<int>> people;
+int N, K, best;
+vector<vector<int>> V;
+vector<vector<bool>> placed;   // 검사원을 배치한 칸
 
-void dfs(vector<vector<int>>& grid, int k, int now, int sum){
-    if (k == now){
-        answer = (answer > sum) ? answer : sum;
+// 고르기 백트래킹 : 칸에 0 ~ N*N-1 번호를 매기고, start번 칸 이후만 후보로
+// (start 이후만 보면 같은 칸 중복 배치와 순서만 다른 중복이 모두 사라짐)
+void dfs(int start, int cnt, int sum) {
+    if (cnt == K) {
+        if (sum > best) best = sum;
         return;
     }
-    vector<int> dy = {1,-1,0,0};
-    vector<int> dx = {0,0,1,-1};
+    for (int c = start; c < N * N; c++) {
+        int y = c / N, x = c % N;            // 번호 → 좌표
+        if (V[y][x] == 0) continue;          // 장비가 있는 칸
 
-    for (int y = 1; y <= n; y++){
-        for (int x = 1; x <= n; x++){
-            if (grid[y][x] == 0 || people[y][x] == 1) continue;
-            bool conti_flag = false;
-            int part_sum = grid[y][x];
-            for (int dir = 0; dir < 4; dir++){
-                int ny = y + dy[dir];
-                int nx = x + dx[dir];
-                if(people[ny][nx] == 1) conti_flag = true;
-            }
-            if (conti_flag) continue;
-            people[y][x] = 1;
-            dfs(grid, k, now+1, sum+part_sum);
-            people[y][x] = 0;
-        }
+        // 앞 번호 칸만 배치되어 있으므로 위쪽, 왼쪽 이웃만 확인하면 충분
+        if (y > 0 && placed[y - 1][x]) continue;
+        if (x > 0 && placed[y][x - 1]) continue;
+
+        placed[y][x] = true;
+        dfs(c + 1, cnt + 1, sum + V[y][x]);
+        placed[y][x] = false;                // 되돌리기
     }
 }
 
-
 int solution(vector<vector<int>> grid, int k) {
-    n = grid.size();
-    people.assign(n+2, vector<int>(n+2,0));
-    vector<vector<int>> n_grid(n+2, vector<int>(n+2,0));
-    for (int y = 1; y <= n; y++){
-        for (int x = 1; x <= n; x++){
-            n_grid[y][x] = grid[y-1][x-1];
-        }
-    }
-    dfs(n_grid, k, 0, 0);
-    return answer;
+    V = grid;
+    N = grid.size();
+    K = k;
+    best = -1;                               // 끝까지 못 고르면 -1 그대로
+    placed.assign(N, vector<bool>(N, false));
+
+    dfs(0, 0, 0);
+    return best;
 }

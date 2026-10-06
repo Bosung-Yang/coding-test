@@ -3,48 +3,55 @@
 
 using namespace std;
 
-int h,w;
+struct Node {
+    int y, x;
+};
 
-int bfs(vector<string> grid, int sy, int sx, int ey, int ex){
-    vector<vector<int>> dist(h,vector<int>(w,-1));
-    vector<int> dy = {1,-1,0,0};
-    vector<int> dx = {0,0,1,-1};
+int R, C;
+vector<string> G;
 
-    vector<vector<int>> q;
-    int qhead = 0;
-
+// (sy, sx)에서 문자 goal이 있는 칸까지 최단 거리 (못 가면 -1)
+int bfs(int sy, int sx, char goal) {
+    int dy[4] = {1, -1, 0, 0};
+    int dx[4] = {0, 0, 1, -1};
+    vector<vector<int>> dist(R, vector<int>(C, -1));
+    vector<Node> q;
+    int head = 0;
     dist[sy][sx] = 0;
-    q.push_back({sy,sx});
+    q.push_back({sy, sx});
 
-    while(qhead < q.size()){
-        vector<int> cur = q[qhead++];
-        int cy = cur[0]; int cx = cur[1];
-        for (int dir=0; dir<4; dir++){
-            int ny = cy + dy[dir]; int nx = cx+dx[dir];
-            if (ny < 0 || nx < 0 || ny >= h || nx >=w) continue;
-            if (dist[ny][nx] != -1 || grid[ny][nx] == '#') continue;
-            dist[ny][nx] = dist[cy][cx] + 1;
+    while (head < (int)q.size()) {
+        Node cur = q[head++];
+        if (G[cur.y][cur.x] == goal) return dist[cur.y][cur.x];
+        for (int d = 0; d < 4; d++) {
+            int ny = cur.y + dy[d], nx = cur.x + dx[d];
+            if (ny < 0 || nx < 0 || ny >= R || nx >= C) continue;
+            if (G[ny][nx] == '#' || dist[ny][nx] != -1) continue;
+            dist[ny][nx] = dist[cur.y][cur.x] + 1;
             q.push_back({ny, nx});
         }
     }
-    return dist[ey][ex];
+    return -1;
 }
+
+// S → P 최단 거리 + P → E 최단 거리
+// (S → P 경로 중에 E를 지나가도 도착이 아니므로, 두 구간을 따로 BFS)
 int solution(vector<string> grid) {
-    int answer = 0;
-    h = grid.size(); w = grid[0].size();
-    int sy,sx,py,px,ey,ex;
-    for(int y = 0; y < h; y++){
-        for(int x = 0 ; x < w; x++){
-            if (grid[y][x] == 'S') {sy = y; sx = x;}
-            if (grid[y][x] == 'E') {ey = y; ex = x;}
-            if (grid[y][x] == 'P') {py = y; px = x;}
+    G = grid;
+    R = grid.size();
+    C = grid[0].size();
+
+    int sy = 0, sx = 0, py = 0, px = 0;
+    for (int y = 0; y < R; y++) {
+        for (int x = 0; x < C; x++) {
+            if (grid[y][x] == 'S') { sy = y; sx = x; }
+            if (grid[y][x] == 'P') { py = y; px = x; }
         }
     }
-    
-    int p_val = bfs(grid, sy, sx, py, px);
-    int e_val = bfs(grid, py, px, ey, ex);
-    if (p_val == -1 || e_val == -1) return -1;
-    return p_val + e_val;
 
-    return answer;
+    int toP = bfs(sy, sx, 'P');
+    if (toP == -1) return -1;
+    int toE = bfs(py, px, 'E');
+    if (toE == -1) return -1;
+    return toP + toE;
 }

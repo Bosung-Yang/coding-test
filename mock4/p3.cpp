@@ -3,52 +3,46 @@
 
 using namespace std;
 
-vector<vector<int>> visited;
-int h,w;
+struct Node {
+    int y, x;
+};
 
-int bfs(const vector<string>& grid, int sy, int sx){
-    vector<int> dy = {-1, -1, -1, 0, 0, 1,1,1};
-    vector<int> dx = {-1, 0, 1, -1, 1, -1, 0, 1};
-    int cy = sy;
-    int cx = sx;
-    vector<vector<int>> q;
-    int qhead = 0;
-    q.push_back({cy,cx});
-    visited[cy][cx] = 1;
-    int answer = 1;
-    while(qhead < q.size()){
-        vector<int> cur = q[qhead++];
-        cy = cur[0]; cx = cur[1];
-        for (int dir = 0; dir < 8; dir++){
-            int ny = cy + dy[dir];
-            int nx = cx + dx[dir];
-            if (ny < 0 || ny >= h || nx < 0 || nx >= w) continue;
-            if (visited[ny][nx] == 1 || grid[ny][nx] == '.') continue;
-            answer++;
-            visited[ny][nx] = 1;
-            q.push_back({ny,nx});
-        }
-    }
-    return answer;
-}
 vector<int> solution(vector<string> grid) {
-    vector<int> answer;
-    h = grid.size();
-    w = grid[0].size();
-    visited.assign(h, vector<int>(w,0));
-    int cnt = 0; // 결함 영역의 개수 
-    int best = 0; // 가장 큰 결함의 캐수
+    int h = grid.size(), w = grid[0].size();
+    vector<vector<bool>> visited(h, vector<bool>(w, false));
+    int regions = 0;   // 결함 영역 개수
+    int largest = 0;   // 가장 큰 영역의 칸 수
 
-    for (int y = 0; y < h ; y++){
-        for (int x = 0; x < w; x++){
-            if (grid[y][x] == '#' && visited[y][x] ==0){
-                int rval = bfs(grid, y, x);
-                cnt++;
-                best = (best > rval) ? best : rval;
+    for (int sy = 0; sy < h; sy++) {
+        for (int sx = 0; sx < w; sx++) {
+            if (grid[sy][sx] != '#' || visited[sy][sx]) continue;
+
+            // 새 영역 발견 → BFS로 크기 세기
+            regions++;
+            vector<Node> q;
+            int head = 0;
+            visited[sy][sx] = true;   // 시작점 방문 표시
+            q.push_back({sy, sx});
+
+            while (head < (int)q.size()) {
+                Node cur = q[head++];
+                // 8방향 (대각선 포함)
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        if (dy == 0 && dx == 0) continue;
+                        int ny = cur.y + dy, nx = cur.x + dx;
+                        if (ny < 0 || nx < 0 || ny >= h || nx >= w) continue;
+                        if (grid[ny][nx] != '#' || visited[ny][nx]) continue;
+                        visited[ny][nx] = true;
+                        q.push_back({ny, nx});
+                    }
+                }
             }
+
+            // 큐에 들어간 칸 수 = 영역 크기 (시작점 포함)
+            int size = q.size();
+            if (size > largest) largest = size;
         }
     }
-    answer.push_back(cnt);
-    answer.push_back(best);
-    return answer;
+    return {regions, largest};
 }

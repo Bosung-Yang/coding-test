@@ -3,52 +3,52 @@
 
 using namespace std;
 
-vector<string> split(const string& s, char sep = ' ') {
+const int EMPTY = 0;   // 빈 칸 (id는 1 이상)
+
+// s를 공백 기준으로 나눔
+vector<string> split(const string& s) {
     vector<string> result;
-    size_t start = 0, pos;
-    while ((pos = s.find(sep, start)) != string::npos) {
-        result.push_back(s.substr(start, pos - start));
-        start = pos + 1;
+    string cur = "";
+    for (char c : s) {
+        if (c == ' ') {
+            if (!cur.empty()) result.push_back(cur);
+            cur = "";
+        } else {
+            cur += c;
+        }
     }
-    result.push_back(s.substr(start));
+    if (!cur.empty()) result.push_back(cur);
     return result;
 }
 
 vector<int> solution(int n, vector<string> commands) {
+    vector<int> mem(n, EMPTY);   // mem[i] : i번 칸을 가진 프로그램 id
     vector<int> answer;
 
-    vector<int> mymem(n, 1001); // 1001 == 할당안됨 
+    for (const string& cmd : commands) {
+        vector<string> t = split(cmd);
+        int id = stoi(t[1]);
 
-    for (string cmd : commands){
-        vector<string> tmp = split(cmd);
-        char type = tmp[0][0];
-        int id = stoi(tmp[1]);
+        if (t[0] == "A") {
+            int size = stoi(t[2]);
 
-        if (type == 'A'){
-            int start = 0;
-            int cnt = 0;
-            int idx = 0; 
-            int size = stoi(tmp[2]);
-            bool success = false;
-            while(idx < n ){
-                if (mymem[idx] == 1001){
-                    cnt++; 
-                    if (cnt == 1) start = idx; 
-                    idx++;
-                }
-                else if(mymem[idx] != 1001) { cnt = 0 ; idx++;}
-                if (cnt == size) {success = true; break;}
-                
+            // 연속 빈 칸 개수를 세다가 size개가 되는 순간의 시작 위치 = 가장 앞 위치
+            int run = 0, start = -1;
+            for (int i = 0; i < n; i++) {
+                if (mem[i] == EMPTY) run++;
+                else run = 0;
+                if (run == size) { start = i - size + 1; break; }
             }
-            if (success) {
-                for (int i = start; i < start+size; i++) mymem[i] = id;
-                answer.push_back(start);
+
+            // 찾았으면 실제로 메모리에 id를 기록
+            if (start != -1) {
+                for (int i = start; i < start + size; i++) mem[i] = id;
             }
-            else answer.push_back(-1);
+            answer.push_back(start);   // 실패면 -1
         }
-        if (type == 'F'){
-            for (int i = 0 ; i < n ; i++){
-                if (mymem[i] == id) mymem[i] = 1001;
+        else {   // "F"
+            for (int i = 0; i < n; i++) {
+                if (mem[i] == id) mem[i] = EMPTY;
             }
         }
     }

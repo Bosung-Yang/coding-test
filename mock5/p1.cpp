@@ -4,35 +4,24 @@
 using namespace std;
 
 vector<int> solution(vector<vector<int>> production) {
-    vector<int> answer;
-    int best_line = 0;
-    int best_day = 0;
-    int nline = (int)production.size();
-    int nday = (int)production[0].size();
+    int n = production.size();      // 라인 수
+    int m = production[0].size();   // 날짜 수
 
-    int mx_make = 0;
-    for(int line = 0; line < nline; line++){
-        int line_make = 0;
-        for (int day = 0; day < nday; day++){
-            line_make += production[line][day];
-        }
-        if (line_make > mx_make){
-            mx_make = line_make;
-            best_line = line;
-        }
+    // 1. 라인별 합 (행 합) — 같으면 번호가 작은 것을 유지하려고 '>'만 사용
+    int bestLine = 0, bestLineSum = -1;
+    for (int i = 0; i < n; i++) {
+        int sum = 0;
+        for (int j = 0; j < m; j++) sum += production[i][j];
+        if (sum > bestLineSum) { bestLineSum = sum; bestLine = i; }
     }
 
-    mx_make = 0;
-    for(int day = 0; day < nday; day++){
-        int day_make = 0;
-        for (int line = 0; line < nline; line++){
-            day_make += production[line][day];
-        }
-        if (day_make > mx_make){
-            mx_make = day_make;
-            best_day = day;
-        }
+    // 2. 날짜별 합 (열 합)
+    int bestDay = 0, bestDaySum = -1;
+    for (int j = 0; j < m; j++) {
+        int sum = 0;
+        for (int i = 0; i < n; i++) sum += production[i][j];
+        if (sum > bestDaySum) { bestDaySum = sum; bestDay = j; }
     }
-    
-    return {best_line, best_day};
+
+    return {bestLine, bestDay};
 }

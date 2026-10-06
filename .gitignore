@@ -1,3 +1,5 @@
 .DS_Store
 *.bin
 *.debug
+__pycache__/
+*.pyc

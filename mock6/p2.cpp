@@ -3,54 +3,44 @@
 
 using namespace std;
 
-string solution(vector<string> commands) {
-    string answer = "";
-    vector<long long> st;
+const long long LIMIT = 1000000000;
 
-    for (string cmd : commands){
-        if (cmd.substr(0,3) == "PUS"){
-            long long x = stoll(cmd.substr(4));
-            st.push_back(x);
+string solution(vector<string> commands) {
+    vector<long long> st;   // 스택 (곱셈 결과가 int를 넘을 수 있으므로 long long)
+
+    for (const string& cmd : commands) {
+        if (cmd.substr(0, 4) == "PUSH") {
+            st.push_back(stoll(cmd.substr(5)));       // 음수도 stoll로 처리됨
         }
-        if (cmd == "POP"){
-            if (st.size() < 1) return "ERROR";
+        else if (cmd == "POP") {
+            if (st.empty()) return "ERROR";
             st.pop_back();
         }
-        if (cmd =="DUP"){
-            if (st.size() < 1) return "ERROR";
-            long long x = st.back();
-            st.push_back(x);
+        else if (cmd == "DUP") {
+            if (st.empty()) return "ERROR";
+            st.push_back(st.back());
         }
-        if (cmd =="SWAP"){
+        else {   // SWAP, ADD, SUB, MUL : 값 2개 필요
             if (st.size() < 2) return "ERROR";
-            long long x = st.back(); st.pop_back();
-            long long y = st.back(); st.pop_back();
-            st.push_back(x);
-            st.push_back(y);
-        }
-        if (cmd =="ADD"){
-            if (st.size() < 2) return "ERROR";
-            long long x = st.back(); st.pop_back();
-            long long y = st.back(); st.pop_back();
-            if (x+y > 1000000000) return "ERROR";
-            st.push_back(x+y);
-        }
-        if (cmd =="SUB"){
-            if (st.size() < 2) return "ERROR";
-            long long x = st.back(); st.pop_back();
-            long long y = st.back(); st.pop_back();
-            if (y-x <  -1000000000) return "ERROR";
-            st.push_back(y-x);
-        }
-        if (cmd =="MUL"){
-            if (st.size() < 2) return "ERROR";
-            long long x = st.back(); st.pop_back();
-            long long y = st.back(); st.pop_back();
-            if (x*y <  -1000000000 || x*y > 1000000000) return "ERROR";
-            st.push_back(x*y);
+            long long a = st.back(); st.pop_back();   // 맨 위
+            long long b = st.back(); st.pop_back();   // 그 아래
+
+            if (cmd == "SWAP") {
+                st.push_back(a);
+                st.push_back(b);
+                continue;
+            }
+
+            long long v;
+            if (cmd == "ADD") v = b + a;
+            else if (cmd == "SUB") v = b - a;          // 아래 - 위
+            else v = b * a;                            // 최대 10^18 → long long 범위 안
+
+            if (v > LIMIT || v < -LIMIT) return "ERROR";
+            st.push_back(v);
         }
     }
+
     if (st.empty()) return "EMPTY";
-    else return to_string(st.back());
-    return answer;
+    return to_string(st.back());
 }
